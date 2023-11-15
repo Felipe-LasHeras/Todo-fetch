@@ -3,52 +3,76 @@ import React, { useState, useEffect } from "react";
 const Home = () => {
   const [tareas, setTareas] = useState([]);
 
-  useEffect (() => {
-	fetch('https://playground.4geeks.com/apis/fake/todos/user/felipelasheras', {
+  useEffect(() => {
+    fetch("https://playground.4geeks.com/apis/fake/todos/user/felipelasheras", {
       method: "GET",
       headers: {
-        "Content-Type": "application/json"
-      }
+        "Content-Type": "application/json",
+      },
     })
-    .then(resp => resp.json())
-    .then(data => {
-		console.log(data);
-		setTareas(data)
-	})
-    .catch(error => console.log(error));
-  },[])
+      .then((resp) => {
+        if (resp.ok) {
+          return resp.json();
+        } else {
+          throw new Error("Failed to fetch data");
+        }
+      })
+      .then((data) => {
+        console.log(data);
+        setTareas(data);
+      })
+      .catch(error => {
+        fetch('https://playground.4geeks.com/apis/fake/todos/user/felipelasheras', {
+           method: "POST",
+           headers: {
+             "Content-Type": "application/json"
+           },
+           body: JSON.stringify([])
+        })
+        .then(resp => {
+           if (!resp.ok) {
+              throw new Error('Failed to create array');
+           }
+           return resp.json();
+        })
+        .then(data => {
+           console.log("Array created successfully", data);
+        })
+        .catch(err => console.error("Error:", err));
+     });
+  }, []);
 
   const agregarTarea = (e) => {
     if (e.key === "Enter" && e.target.value) {
-		const nuevasTareas = [...tareas, {label: e.target.value, done: false}]
+      const nuevasTareas = [...tareas, { label: e.target.value, done: false }];
       setTareas(nuevasTareas);
-	  actualizarTareasEnServidor (nuevasTareas)
+      actualizarTareasEnServidor(nuevasTareas);
       e.target.value = "";
     }
   };
 
   const actualizarTareasEnServidor = (todos) => {
-	fetch('https://playground.4geeks.com/apis/fake/todos/user/felipelasheras', {
+    fetch("https://playground.4geeks.com/apis/fake/todos/user/felipelasheras", {
       method: "PUT",
       body: JSON.stringify(todos),
       headers: {
-        "Content-Type": "application/json"
-      }
+        "Content-Type": "application/json",
+      },
     })
-    .then(resp => {
+      .then((resp) => {
         console.log(resp.ok); // Será true (verdad) si la respuesta es exitosa.
         console.log(resp.status); // el código de estado = 200 o código = 400 etc.
         return resp.json(); // (regresa una promesa) will try to parse the result as json as return a promise that you can .then for results
-    })
-    .then(data => {
+      })
+      .then((data) => {
         //Aquí es donde debe comenzar tu código después de que finalice la búsqueda
         console.log(data); //esto imprimirá en la consola el objeto exacto recibido del servidor
-    })
-    .catch(error => {
+      })
+      .catch((error) => {
         //manejo de errores
         console.log(error);
-    });
-  }
+      });
+  };
 
   const eliminarTarea = (index) => {
     const nuevasTareas = [...tareas];
